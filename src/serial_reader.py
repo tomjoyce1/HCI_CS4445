@@ -2,6 +2,7 @@ import serial
 import serial.tools.list_ports
 import time
 import rtmidi
+import pygame
 import re
 import numpy as np
 import json
@@ -242,7 +243,10 @@ class SensorGUI:
         self.pitch = 0
         self.roll = 0
         self.yaw = 0
-        
+                
+        self.playing = False
+        self.playback_index = 0
+
         self._create_widgets()
         self._list_ports()
     
@@ -323,7 +327,23 @@ class SensorGUI:
         
         # Save preference
         self._save_theme_preference()
-    
+
+    def toggle_playback(self):
+        if not pygame.mixer.get_init():
+            pygame.mixer.init()
+        file_path = os.path.join(os.getcwd(), "recording.mp3")  
+
+        if pygame.mixer.music.get_busy():
+            pygame.mixer.music.stop()
+        
+        else:
+            try:
+                pygame.mixer.music.load(file_path)
+                pygame.mixer.music.play()
+            except pygame.error as e:
+                print('Error loading noooo')
+
+
     def _create_widgets(self):
         # Create main frames
         control_frame = ttk.Frame(self.root, padding="10")
@@ -357,6 +377,12 @@ class SensorGUI:
         ttk.Button(control_frame, text="Select MIDI Port", command=self.select_midi_port).grid(
             row=1, column=4, padx=5, pady=5)
         
+        
+
+        # Playback button        
+        self.play_button = ttk.Button(control_frame, text="▶️ User Instructions", command=self.toggle_playback)
+        self.play_button.grid(row=1, column=6, padx=5, pady=5)
+
         # Status indicators
         status_frame = ttk.LabelFrame(control_frame, text="Status", padding="10")
         status_frame.grid(row=2, column=0, columnspan=5, padx=5, pady=5, sticky=tk.W+tk.E)
